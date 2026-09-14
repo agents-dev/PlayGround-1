@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Red Sky</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #ff0000; }
+  #app { position: fixed; inset: 0; }
+  canvas { display: block; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+</head>
+<body>
+<div id="app"></div>
+<script type="module">
+import * as THREE from 'three';
+
+const SKY_RED = 0xff0000;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.getElementById('app').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(SKY_RED);
+// Red fog blends distant geometry into the red sky.
+scene.fog = new THREE.Fog(SKY_RED, 20, 120);
+
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 500);
+camera.position.set(0, 2, 6);
+
+scene.add(new THREE.HemisphereLight(0xffffff, 0x550000, 1.2));
+const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+sun.position.set(5, 10, 5);
+scene.add(sun);
+
+// Ground for contrast so the red sky is visibly a sky, not a fullscreen fill.
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(200, 200),
+  new THREE.MeshStandardMaterial({ color: 0x222222, roughness: 1 })
+);
+ground.rotation.x = -Math.PI / 2;
+scene.add(ground);
+
+window.addEventListener('resize', () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+let ready = false;
+function animate() {
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+  if (!ready) {
+    ready = true;
+    window.__sceneReady = true;
+    document.title = 'Red Sky — ready';
+  }
+}
+animate();
+</script>
+</body>
+</html>
